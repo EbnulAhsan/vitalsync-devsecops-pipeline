@@ -329,7 +329,7 @@ Every pipeline run automatically produces the following downloadable artifacts i
 
 > Replace each link below with your Google Drive share link (make sure sharing is set to "Anyone with the link").
 
-| Evidence | Screenshot |
+| Evidence |
 |---|---|
  https://drive.google.com/drive/folders/1lFRs4HEeV0JrwFglSQt9w17qgqB-JRg8?usp=sharing
 ---
