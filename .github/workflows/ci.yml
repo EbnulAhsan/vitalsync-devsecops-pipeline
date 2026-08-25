@@ -30,11 +30,11 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies securely
+        run: npm ci --ignore-scripts
 
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: npx --ignore-scripts prisma generate
 
       - name: Build TypeScript application
         run: npm run build
