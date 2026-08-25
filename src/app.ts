@@ -14,6 +14,7 @@ import { notFound } from "./middlewares/notFound";
 
 
 const app = express();
+app.disable("x-powered-by");
 
 app.use(
     cors({
