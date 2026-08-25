@@ -1,0 +1,173 @@
+﻿name: VitalSync CI/CD Quality, Security and Performance
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-checks:
+    name: Build and Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build TypeScript application
+        run: npm run build
+
+      - name: Run Jest unit tests with coverage
+        run: npm test -- --coverage --ci
+
+  policy-validation:
+    name: OPA Policy Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
+          chmod +x opa
+          sudo mv opa /usr/local/bin/opa
+          opa version
+
+      - name: Validate Rego policy
+        run: opa check policy/docker_tag.rego
+
+      - name: Verify versioned image tag is allowed
+        run: |
+          result=$(opa eval \
+            --data policy/docker_tag.rego \
+            --input policy/input-valid.json \
+            --format raw \
+            "data.docker.image.deny")
+          echo "Valid image policy result: $result"
+          test "$result" = "[]"
+
+      - name: Verify latest image tag is denied
+        run: |
+          result=$(opa eval \
+            --data policy/docker_tag.rego \
+            --input policy/input-invalid.json \
+            --format raw \
+            "data.docker.image.deny")
+          echo "Invalid image policy result: $result"
+          test "$result" != "[]"
+
+  docker-build:
+    name: Build and Scan Docker Image
+    runs-on: ubuntu-latest
+    needs:
+      - quality-checks
+      - policy-validation
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build versioned Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: vitalsync-backend:${{ github.run_number }}
+
+      - name: Verify Docker image
+        run: docker image inspect vitalsync-backend:${{ github.run_number }}
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: vitalsync-backend:${{ github.run_number }}
+          format: table
+          output: trivy-report.txt
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 0
+
+      - name: Display Trivy vulnerability report
+        if: always()
+        run: cat trivy-report.txt
+
+      - name: Upload Trivy vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-vulnerability-report
+          path: trivy-report.txt
+          retention-days: 30
+
+  load-test:
+    name: k6 Load Test
+    runs-on: ubuntu-latest
+    needs:
+      - quality-checks
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Start test health API
+        run: |
+                   node -e "require('http').createServer((req,res)=>{res.writeHead(req.url==='/health'?200:404,{'Content-Type':'application/json'});res.end(JSON.stringify(req.url==='/health'?{success:true,status:'healthy'}:{success:false,message:'Not Found'}))}).listen(5000)" > health-server.log 2>&1 &
+
+
+      - name: Wait for test API
+        run: |
+          for i in {1..15}; do
+            if curl --fail http://localhost:5000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat health-server.log
+          exit 1
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 load test with 50 virtual users
+        env:
+          BASE_URL: http://localhost:5000
+        run: |
+          k6 run \
+            --summary-export=k6-summary.json \
+            load-tests/health-load-test.js | tee k6-results.txt
+
+      - name: Upload k6 load-test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test-results
+          path: |
+            k6-summary.json
+            k6-results.txt
+            health-server.log
+          retention-days: 30

@@ -1,0 +1,39 @@
+﻿services:
+  postgres:
+    image: postgres:16
+    container_name: vitalsync-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - vitalsync-postgres-data:/var/lib/postgresql/data
+    networks:
+      - vitalsync-network
+
+  backend:
+    build: .
+    container_name: vitalsync-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: ${PORT:-5000}
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    depends_on:
+      - postgres
+    networks:
+      - vitalsync-network
+
+volumes:
+  vitalsync-postgres-data:
+
+networks:
+  vitalsync-network:
+    driver: bridge
