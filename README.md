@@ -1,779 +1,383 @@
-# 🧠 VitalSync Backend
+# VitalSync — CI/CD Quality, Security & Performance Pipeline
 
-> **A secure, scalable, modular health tracking REST API built with Node.js, Express.js, TypeScript, Prisma ORM, PostgreSQL, JWT Authentication, Zod Validation, and clean backend architecture.**
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
+[![Security Scan](https://img.shields.io/badge/trivy-passing-brightgreen)]()
+[![Code Quality](https://img.shields.io/badge/sonarcloud-passing-brightgreen)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)]()
 
-VitalSync Backend powers the VitalSync full-stack health tracking application.  
-It provides secure APIs for user authentication, profile management, BMI tracking, water intake, sleep tracking, weight tracking, goals management, and dashboard health summaries.
+## Overview
 
-This backend is designed with a clean modular structure, service layer, controller layer, Prisma database integration, JWT protected routes, global error handling, and request validation.
+**VitalSync** is a health and wellness tracking application that helps users monitor and manage personal health metrics — including BMI, water intake, sleep, weight, and fitness goals.
 
----
+This repository showcases a production-style **DevSecOps pipeline** built around VitalSync's backend service, demonstrating how quality, security, and performance can be enforced automatically at every stage of the software delivery lifecycle — from commit to container.
 
-## 🌿 About VitalSync
+The pipeline integrates:
 
-**VitalSync** is a modern health tracking application where users can monitor their daily wellness data from one place.
-
-Users can track:
-
-- 🧮 BMI
-- 💧 Water intake
-- 🌙 Sleep duration
-- ⚖️ Weight changes
-- 🎯 Health goals
-- 👤 Profile information
-- 📊 Dashboard health summary
-
----
-
-## 🚀 Backend Features
-
-### 🔐 Authentication Module
-
-- User registration
-- User login
-- Password hashing with bcrypt
-- JWT access token generation
-- Protected route authentication
-- Secure token-based API access
+| Stage | Purpose |
+|---|---|
+| **Unit Testing** | Verify business logic correctness (Jest) |
+| **Static Code Analysis** | Catch bugs, code smells, and vulnerabilities (SonarCloud) |
+| **Policy as Code** | Enforce deployment and configuration rules (OPA) |
+| **Load Testing** | Validate performance under concurrent load (k6) |
+| **Container Security** | Scan images for vulnerabilities and misconfigurations (Trivy) |
+| **CI/CD Orchestration** | Automate the above on every push/PR (GitHub Actions) |
 
 ---
 
-### 👤 Profile Module
+## Table of Contents
 
-- Get logged-in user profile
-- Update profile information
-- Supports:
-  - Full name
-  - Gender
-  - Date of birth
-  - Height
-  - Activity level
-  - Avatar URL
-
----
-
-### 🧮 BMI Module
-
-- Calculate BMI from height and weight
-- Auto-detect BMI category
-- Save BMI records
-- Get BMI history
-- Auto-save related weight history
-
-BMI categories:
-
-- UNDERWEIGHT
-- NORMAL
-- OVERWEIGHT
-- OBESE
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Quality Engineering](#quality-engineering)
+- [Security Implementation](#security-implementation)
+- [Performance Testing](#performance-testing)
+- [Docker](#docker)
+- [Getting Started](#getting-started)
+- [Generated Artifacts](#generated-artifacts)
+- [Security & Performance Improvements](#security--performance-improvements)
+- [Pipeline Status](#pipeline-status)
+- [Assignment Deliverables](#assignment-deliverables)
+- [Author](#author)
 
 ---
 
-### 💧 Water Tracker Module
+## Tech Stack
 
-- Add water intake
-- Get today’s water total
-- Get water intake history
-- Calculate total water in ml and liters
-
----
-
-### 🌙 Sleep Tracker Module
-
-- Add sleep duration
-- Add sleep quality
-- Get today’s sleep total
-- Get sleep history
-- Convert sleep minutes into hours
-
----
-
-### ⚖️ Weight Tracker Module
-
-- Add weight records
-- Add optional notes
-- Get latest weight
-- Get weight history
-
----
-
-### 🎯 Goals Module
-
-Users can create and manage health goals for:
-
-- WATER
-- SLEEP
-- WEIGHT
-- CALORIES
-
-Goal operations:
-
-- Create goal
-- Get all goals
-- Get single goal
-- Update goal
-- Complete goal
-- Delete goal
-
-Goal status:
-
-- ACTIVE
-- COMPLETED
-- FAILED
-
----
-
-### 📊 Dashboard Summary Module
-
-Single API endpoint that returns a complete health overview:
-
-- User profile
-- Latest BMI
-- Latest weight
-- Today’s water intake
-- Today’s sleep duration
-- Active goals
-
----
-
-## 🛠️ Tech Stack
-
-### Backend Core
-
-- 🟩 **Node.js**
-- 🚀 **Express.js**
-- 🟦 **TypeScript**
-- 🧬 **Prisma ORM**
-- 🐘 **PostgreSQL**
-
-### Security & Validation
-
-- 🔐 **JWT Authentication**
-- 🔒 **bcryptjs Password Hashing**
-- ✅ **Zod Request Validation**
-- 🛡️ **Protected Route Middleware**
-
-### Backend Architecture
-
-- Modular folder structure
-- Controller layer
-- Service layer
-- Route layer
-- Global error handler
-- Custom AppError class
-- catchAsync utility
-- Prisma database client
-- Clean API response format
-
----
-
-## 📁 Project Structure
-
-```txt
-vitalsync-backend
-├─ prisma
-│  ├─ migrations
-│  └─ schema.prisma
-│
-├─ src
-│  ├─ config
-│  │  └─ prisma.ts
-│  │
-│  ├─ error
-│  │  └─ AppError.ts
-│  │
-│  ├─ middlewares
-│  │  ├─ auth.middleware.ts
-│  │  ├─ globalErrorHandler.ts
-│  │  ├─ notFound.ts
-│  │  └─ validateRequest.ts
-│  │
-│  ├─ modules
-│  │  ├─ auth
-│  │  │  ├─ auth.controller.ts
-│  │  │  ├─ auth.route.ts
-│  │  │  ├─ auth.service.ts
-│  │  │  └─ auth.validation.ts
-│  │  │
-│  │  ├─ profile
-│  │  │  ├─ profile.controller.ts
-│  │  │  ├─ profile.route.ts
-│  │  │  ├─ profile.service.ts
-│  │  │  └─ profile.validation.ts
-│  │  │
-│  │  ├─ bmi
-│  │  │  ├─ bmi.controller.ts
-│  │  │  ├─ bmi.route.ts
-│  │  │  ├─ bmi.service.ts
-│  │  │  └─ bmi.validation.ts
-│  │  │
-│  │  ├─ water
-│  │  ├─ sleep
-│  │  ├─ weight
-│  │  ├─ goals
-│  │  └─ dashboard
-│  │
-│  ├─ utils
-│  │  └─ catchAsync.ts
-│  │
-│  ├─ app.ts
-│  └─ server.ts
-│
-├─ .env
-├─ .gitignore
-├─ package.json
-├─ tsconfig.json
-└─ README.md
-```
-
----
-
-## ⚙️ Getting Started
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone https://github.com/EbnulAhsan/Vitalsync-backend.git
-cd Vitalsync-backend
-```
-
----
-
-### 2️⃣ Install dependencies
-
-```bash
-npm install
-```
-
----
-
-### 3️⃣ Create environment file
-
-Create a `.env` file in the root directory:
-
-```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/vitalsync_db?schema=public"
-
-PORT=5000
-NODE_ENV=development
-CLIENT_URL="http://localhost:3000"
-
-JWT_ACCESS_SECRET="your_access_secret"
-JWT_REFRESH_SECRET="your_refresh_secret"
-```
-
-> ⚠️ Replace `YOUR_PASSWORD` with your local PostgreSQL password.
-
----
-
-### 4️⃣ Create PostgreSQL database
-
-Create a database named:
-
-```txt
-vitalsync_db
-```
-
-Using SQL:
-
-```sql
-CREATE DATABASE vitalsync_db;
-```
-
----
-
-### 5️⃣ Generate Prisma Client
-
-```bash
-npx prisma generate
-```
-
----
-
-### 6️⃣ Run database migration
-
-```bash
-npx prisma migrate dev --name init
-```
-
----
-
-### 7️⃣ Start development server
-
-```bash
-npm run dev
-```
-
-Server should run on:
-
-```txt
-http://localhost:5000
-```
-
----
-
-## ✅ Health Check
-
-```http
-GET /
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "message": "VitalSync Backend API is running 🚀"
-}
-```
-
----
-
-```http
-GET /health
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "status": "healthy",
-  "timestamp": "2026-07-01T00:00:00.000Z"
-}
-```
-
----
-
-## 🔐 Authentication APIs
-
-### Register
-
-```http
-POST /api/v1/auth/register
-```
-
-Body:
-
-```json
-{
-  "fullName": "MD. Ebnul Ahsan",
-  "email": "ebnul@example.com",
-  "password": "123456"
-}
-```
-
----
-
-### Login
-
-```http
-POST /api/v1/auth/login
-```
-
-Body:
-
-```json
-{
-  "email": "ebnul@example.com",
-  "password": "123456"
-}
-```
-
-Response includes:
-
-```json
-{
-  "accessToken": "JWT_TOKEN"
-}
-```
-
----
-
-## 🛡️ Protected Routes
-
-For protected routes, send token in header:
-
-```txt
-Authorization: Bearer YOUR_ACCESS_TOKEN
-```
-
----
-
-## 👤 Profile APIs
-
-```http
-GET /api/v1/profile/me
-PATCH /api/v1/profile/me
-```
-
-Update profile body example:
-
-```json
-{
-  "fullName": "MD. Ebnul Ahsan",
-  "gender": "MALE",
-  "dateOfBirth": "2000-01-01",
-  "heightCm": 170,
-  "activityLevel": "MODERATE"
-}
-```
-
----
-
-## 🧮 BMI APIs
-
-```http
-POST /api/v1/bmi/calculate
-GET  /api/v1/bmi/history
-```
-
-Calculate BMI body:
-
-```json
-{
-  "weightKg": 70,
-  "heightCm": 170
-}
-```
-
-Example response:
-
-```json
-{
-  "bmiValue": 24.22,
-  "category": "NORMAL"
-}
-```
-
----
-
-## 💧 Water APIs
-
-```http
-POST /api/v1/water/add
-GET  /api/v1/water/today
-GET  /api/v1/water/history
-```
-
-Add water body:
-
-```json
-{
-  "amountMl": 250
-}
-```
-
----
-
-## 🌙 Sleep APIs
-
-```http
-POST /api/v1/sleep/add
-GET  /api/v1/sleep/today
-GET  /api/v1/sleep/history
-```
-
-Add sleep body:
-
-```json
-{
-  "durationMins": 420,
-  "quality": "GOOD"
-}
-```
-
----
-
-## ⚖️ Weight APIs
-
-```http
-POST /api/v1/weight/add
-GET  /api/v1/weight/latest
-GET  /api/v1/weight/history
-```
-
-Add weight body:
-
-```json
-{
-  "weightKg": 69.5,
-  "note": "Morning weight"
-}
-```
-
----
-
-## 🎯 Goals APIs
-
-```http
-POST   /api/v1/goals
-GET    /api/v1/goals
-GET    /api/v1/goals/:id
-PATCH  /api/v1/goals/:id
-DELETE /api/v1/goals/:id
-```
-
-Create goal body:
-
-```json
-{
-  "type": "WATER",
-  "targetValue": 2500,
-  "currentValue": 500,
-  "deadline": "2026-07-10"
-}
-```
-
-Update goal body:
-
-```json
-{
-  "currentValue": 1200,
-  "status": "ACTIVE"
-}
-```
-
-Complete goal body:
-
-```json
-{
-  "status": "COMPLETED"
-}
-```
-
----
-
-## 📊 Dashboard API
-
-```http
-GET /api/v1/dashboard/summary
-```
-
-Returns:
-
-- User profile
-- Latest BMI
-- Latest weight
-- Today’s water total
-- Today’s sleep total
-- Active goals
-
----
-
-## 🧪 Validation
-
-VitalSync backend uses **Zod validation** for request body validation.
-
-Example invalid response:
-
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "path": "body.email",
-      "message": "Invalid email address"
-    }
-  ]
-}
-```
-
----
-
-## 🧯 Error Handling
-
-The backend includes centralized error handling using:
-
-- `AppError`
-- `catchAsync`
-- `globalErrorHandler`
-- `notFound` middleware
-
-Example error response:
-
-```json
-{
-  "success": false,
-  "message": "Invalid email or password"
-}
-```
-
----
-
-## 🗄️ Database Models
-
-Main Prisma models:
-
-- User
-- Profile
-- BMIRecord
-- WeightHistory
-- WaterHistory
-- SleepHistory
-- Goal
-- ActivityLog
-- RefreshToken
-- Notification
-- Session
-
----
-
-## 🧰 Useful Prisma Commands
-
-### Generate client
-
-```bash
-npx prisma generate
-```
-
-### Run migration
-
-```bash
-npx prisma migrate dev --name init
-```
-
-### Open Prisma Studio
-
-```bash
-npx prisma studio
-```
-
-### Reset database
-
-```bash
-npx prisma migrate reset
-```
-
----
-
-## 📜 Available Scripts
-
-### Run development server
-
-```bash
-npm run dev
-```
-
-### Build project
-
-```bash
-npm run build
-```
-
-### Start production server
-
-```bash
-npm run start
-```
-
-### Prisma generate
-
-```bash
-npm run prisma:generate
-```
-
-### Prisma studio
-
-```bash
-npm run prisma:studio
-```
-
----
-
-## 🔐 Environment Variables
-
-```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/vitalsync_db?schema=public"
-
-PORT=5000
-NODE_ENV=development
-CLIENT_URL="http://localhost:3000"
-
-JWT_ACCESS_SECRET="your_access_secret"
-JWT_REFRESH_SECRET="your_refresh_secret"
-```
-
-> 🚫 Never commit `.env` to GitHub.
-
----
-
-## ✅ Final Tested Backend Flow
-
-- ✅ Server running
-- ✅ PostgreSQL connected
-- ✅ Prisma migration completed
-- ✅ Register API working
-- ✅ Login API working
-- ✅ JWT protected routes working
-- ✅ Profile update working
-- ✅ BMI calculate/history working
-- ✅ Water tracker working
-- ✅ Sleep tracker working
-- ✅ Weight tracker working
-- ✅ Goals CRUD working
-- ✅ Dashboard summary working
-- ✅ Zod validation working
-- ✅ Global error handler working
-- ✅ Production build ready
-
----
-
-## 🌐 Frontend Repository
-
-👉 [VitalSync Frontend](https://github.com/EbnulAhsan/)
-
----
-
-## 🚧 Future Improvements
-
-- 🔁 Refresh token rotation
-- 📧 Email verification
-- 🔑 Forgot password
-- 🧑‍💼 Role-based access control
-- 📝 API documentation with Swagger
-- 🔔 Notification/reminder system
-- 📊 Advanced analytics APIs
-- 🧪 Unit and integration tests
-- 🐳 Docker support
-- ☁️ Cloud deployment
-
----
-
-## 👨‍💻 Author
-
-### **MD. Ebnul Ahsan**
-
-Full-stack project built with focus on:
-
+**Backend**
 - Node.js
 - Express.js
 - TypeScript
 - Prisma ORM
 - PostgreSQL
-- Next.js
-- REST API architecture
-- Authentication and authorization
-- Clean backend structure
 
-GitHub:  
-👉 [EbnulAhsan](https://github.com/EbnulAhsan/)
+**Quality & Security**
+- Jest — unit testing & coverage
+- SonarCloud — static analysis, code quality, and security hotspots
+- Open Policy Agent (OPA) — policy-as-code validation
+- Trivy — container vulnerability scanning
 
----
-
-## ⭐ Support
-
-If this project helped you or inspired you, feel free to give it a ⭐ on GitHub.
+**DevOps & CI/CD**
+- Docker — multi-stage, hardened container builds
+- GitHub Actions — CI/CD orchestration
+- k6 — performance/load testing
 
 ---
 
-## 📄 License
+## Project Structure
 
-This project is open-source and available for learning, portfolio, and development purposes.
+```
+.
+├── src/                        # Application source code
+├── prisma/                     # Prisma schema & migrations
+├── tests/                      # Jest unit tests
+├── policies/
+│   └── security.rego           # OPA policy definitions
+├── performance/
+│   └── health-test.js          # k6 load test script
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions pipeline definition
+├── Dockerfile                   # Multi-stage, non-root container build
+├── docker-compose.yml
+├── package.json
+└── README.md
+```
 
 ---
 
-## 🌿 VitalSync
+## CI/CD Pipeline
 
-> **Track better. Live healthier. Stay synced.**
+The pipeline is orchestrated with **GitHub Actions** and runs automatically on every push and pull request. It is organized into four sequential stages, each acting as a quality gate for the next.
+
+```
+ ┌────────────────────────┐
+ │ Build & Unit Tests     │
+ └───────────┬────────────┘
+             ▼
+ ┌────────────────────────┐
+ │ OPA Policy Validation  │
+ └───────────┬────────────┘
+             ▼
+ ┌────────────────────────┐
+ │ k6 Load Testing        │
+ └───────────┬────────────┘
+             ▼
+ ┌────────────────────────┐
+ │ Build & Scan Docker    │
+ │ Image (Trivy)          │
+ └───────────┬────────────┘
+             ▼
+ ┌────────────────────────┐
+ │ Artifacts Published     │
+ └────────────────────────┘
+```
+
+### Stage 1 — Build and Unit Tests
+- Install project dependencies
+- Run the Jest unit test suite
+- Generate a code coverage report
+
+### Stage 2 — OPA Policy Validation
+- Validate deployment and configuration rules against `policies/security.rego`
+- Fail the build if required environment variables or security configurations are missing
+
+### Stage 3 — k6 Load Testing
+- Simulate concurrent traffic against the `/health` endpoint
+- Generate a performance report artifact
+
+### Stage 4 — Build and Scan Docker Image
+- Build the production Docker image using a multi-stage Dockerfile
+- Run a Trivy vulnerability scan against the built image
+- Upload the security scan report as a workflow artifact
+
+---
+
+## Quality Engineering
+
+### Unit Testing
+
+Unit tests are implemented with **Jest**, currently covering the BMI calculation service, with coverage reporting wired into CI.
+
+```bash
+# Run tests
+npm test
+
+# Generate coverage report
+npm run test:coverage
+```
+
+**Results**
+- All unit tests pass successfully
+- Coverage report generated automatically on every run
+- Coverage artifact stored via GitHub Actions for historical tracking
+
+### Static Code Analysis (SonarCloud)
+
+SonarCloud performs continuous static analysis across the codebase, checking for:
+
+- Bugs
+- Vulnerabilities
+- Code smells
+- Maintainability
+- Reliability
+- Security hotspots
+
+**Current Results**
+
+| Metric | Count |
+|---|---|
+| Security Issues | 0 |
+| Reliability Issues | 0 |
+| Maintainability Issues | 1 |
+| Application source code issues | 0 |
+
+> **Note:** The single remaining maintainability issue is located in an auto-generated Prisma migration file (`prisma/migrations/*/migration.sql`). Modifying auto-generated migration files is not recommended, so this finding is accepted as-is rather than suppressed or edited.
+
+---
+
+## Security Implementation
+
+### Secret Management
+
+All hardcoded secrets were removed from the codebase and replaced with environment-variable-based configuration.
+
+`.env.example`:
+
+```env
+DATABASE_URL=
+JWT_SECRET=
+PORT=
+```
+
+### Hardened Dockerfile
+
+The Docker build follows container security best practices:
+
+- **Multi-stage build** — separates build-time dependencies from the runtime image
+- **Production-only dependency installation** — no dev dependencies ship in the final image
+- **Non-root container user** — the application runs without root privileges inside the container
+
+**Benefits**
+- Reduced attack surface
+- Smaller final image size
+- Improved container security posture
+- Better alignment with production deployment practices
+
+### Policy as Code (OPA)
+
+**Open Policy Agent** validates deployment and configuration policies before a build is allowed to proceed, catching misconfigurations before they reach production.
+
+```bash
+opa eval \
+  -d policies/security.rego \
+  -i policies/input.json \
+  "data.security.allow"
+```
+
+**Validation coverage:**
+- Required environment variables are present
+- Security-related configuration meets policy requirements
+- Deployment configuration is compliant before promotion
+
+### Vulnerability Scanning (Trivy)
+
+**Trivy** scans the built Docker image as part of CI, covering:
+
+- OS-level vulnerabilities
+- Dependency vulnerabilities
+- Container misconfigurations
+- Exposed secrets
+
+Scan results are published as the `trivy-report` artifact on every pipeline run.
+
+---
+
+## Performance Testing
+
+### k6 Load Testing
+
+Performance is validated using **k6**, targeting the application's `/health` endpoint under simulated concurrent load.
+
+**Test scenario**
+
+| Parameter | Value |
+|---|---|
+| Endpoint | `/health` |
+| Virtual Users | 50 |
+| Duration | Configured in workflow |
+
+**Run locally**
+
+```bash
+k6 run performance/health-test.js
+```
+
+Results are published as the `k6-results` artifact after every CI run, enabling performance regressions to be tracked over time.
+
+---
+
+## Docker
+
+**Build the image**
+
+```bash
+docker build -t vitalsync .
+```
+
+**Run the container**
+
+```bash
+docker run -p 5000:5000 vitalsync
+```
+
+---
+
+## Getting Started
+
+1. Clone the repository
+   ```bash
+   git clone <repository-url>
+   cd vitalsync
+   ```
+2. Copy the environment template and fill in your own values
+   ```bash
+   cp .env.example .env
+   ```
+3. Install dependencies
+   ```bash
+   npm install
+   ```
+4. Run database migrations
+   ```bash
+   npx prisma migrate dev
+   ```
+5. Start the application
+   ```bash
+   npm run dev
+   ```
+6. Run the test suite locally
+   ```bash
+   npm test
+   ```
+
+---
+
+## Generated Artifacts
+
+Every pipeline run automatically produces the following downloadable artifacts in GitHub Actions:
+
+| Artifact | Description |
+|---|---|
+| `coverage-report` | Jest unit test coverage results |
+| `trivy-report` | Container vulnerability scan results |
+| `k6-results` | Load/performance test results |
+
+### Evidence Collected
+
+- Unit test success logs
+- Coverage report
+- OPA policy validation output
+- GitHub Actions run summary
+- SonarCloud analysis dashboard
+- Trivy scan report
+- k6 load test results
+
+---
+
+## Security & Performance Improvements
+
+**Security**
+- ✅ Removed hardcoded secrets
+- ✅ Added environment-based configuration (`.env.example`)
+- ✅ Built a hardened, non-root Dockerfile
+- ✅ Implemented OPA policy validation
+- ✅ Added automated Trivy vulnerability scanning
+- ✅ Added CI-enforced security checks
+
+**Performance**
+- ✅ Automated load testing with k6
+- ✅ Health endpoint validated under concurrent load
+- ✅ Performance report generation per pipeline run
+- ✅ CI-integrated performance verification
+
+---
+
+## Pipeline Status
+
+| Check | Status |
+|---|---|
+| Build | ✅ Successful |
+| Unit Tests | ✅ Passed |
+| Coverage | ✅ Generated |
+| OPA Validation | ✅ Passed |
+| Docker Image Build | ✅ Successful |
+| Trivy Scan | ✅ Completed |
+| k6 Load Test | ✅ Passed |
+| SonarCloud Analysis | ✅ Integrated |
+| GitHub Actions Workflow | ✅ Successful |
+
+---
+
+## Assignment Deliverables
+
+- [x] GitHub repository
+- [x] GitHub Actions CI/CD pipeline
+- [x] SonarCloud integration
+- [x] Jest unit tests
+- [x] Coverage report
+- [x] Docker image build
+- [x] Trivy vulnerability scan
+- [x] OPA policy validation
+- [x] k6 performance testing
+- [x] Documented security improvements
+- [x] Evidence screenshots
+
+---
+
+## Author
+
+**Md. Ebnul Ahsan**
+
+*CI/CD Quality, Security & Performance Assignment*
+DevSecOps implementation using GitHub Actions, SonarCloud, Docker, Trivy, OPA, and k6.
