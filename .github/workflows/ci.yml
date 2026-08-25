@@ -17,6 +17,9 @@ jobs:
     name: Build and Unit Tests
     runs-on: ubuntu-latest
 
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/vitalsync_test?schema=public
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -98,6 +101,8 @@ jobs:
           push: false
           load: true
           tags: vitalsync-backend:${{ github.run_number }}
+          build-args: |
+            DATABASE_URL=postgresql://test:test@localhost:5432/vitalsync_test?schema=public
 
       - name: Verify Docker image
         run: docker image inspect vitalsync-backend:${{ github.run_number }}
@@ -136,8 +141,7 @@ jobs:
 
       - name: Start test health API
         run: |
-                   node -e "require('http').createServer((req,res)=>{res.writeHead(req.url==='/health'?200:404,{'Content-Type':'application/json'});res.end(JSON.stringify(req.url==='/health'?{success:true,status:'healthy'}:{success:false,message:'Not Found'}))}).listen(5000)" > health-server.log 2>&1 &
-
+          node -e "require('http').createServer((req,res)=>{res.writeHead(req.url==='/health'?200:404,{'Content-Type':'application/json'});res.end(JSON.stringify(req.url==='/health'?{success:true,status:'healthy'}:{success:false,message:'Not Found'}))}).listen(5000)" > health-server.log 2>&1 &
 
       - name: Wait for test API
         run: |
