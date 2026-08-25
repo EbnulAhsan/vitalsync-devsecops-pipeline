@@ -8,8 +8,8 @@ ENV DATABASE_URL=$DATABASE_URL
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
-RUN npm run prisma:generate
+RUN npm ci --ignore-scripts
+RUN npm run --ignore-scripts prisma:generate
 
 COPY tsconfig.json ./
 COPY src ./src/
